@@ -153,18 +153,23 @@ export default function MonthlyDeficitTracker() {
   const dim = daysInMonth(current.year, current.month);
   const targetMonthlyDeficit = actualDailyDeficit * dim;
 
-  const { totalDeficit, filledCount } = useMemo(() => {
+  const { totalDeficit, totalConsumed, filledCount } = useMemo(() => {
     let total = 0;
+    let consumed = 0;
     let count = 0;
     days.forEach((v) => {
       const n = parseFloat(v);
       if (!isNaN(n) && v !== "") {
         total += tdee - n;
+        consumed += n;
         count += 1;
       }
     });
-    return { totalDeficit: total, filledCount: count };
+    return { totalDeficit: total, totalConsumed: consumed, filledCount: count };
   }, [days, tdee]);
+
+  const monthlyIntakeBudget = targetDailyIntake * dim;
+  const monthlyMaintenance = tdee * dim;
 
   const monthKg = totalDeficit / 7700;
   const progress = targetMonthlyDeficit > 0 ? totalDeficit / targetMonthlyDeficit : 0;
@@ -341,7 +346,7 @@ export default function MonthlyDeficitTracker() {
             за этот месяц
           </text>
           <text x={cx} y={cy + 20} textAnchor="middle" className="mdt-num" style={{ fontSize: 12, fill: COLORS.paperMuted }}>
-            {Math.round(totalDeficit).toLocaleString("ru-RU")} / {Math.round(targetMonthlyDeficit).toLocaleString("ru-RU")} ккал
+            {Math.round(totalConsumed).toLocaleString("ru-RU")} / {Math.round(monthlyIntakeBudget).toLocaleString("ru-RU")} ккал съедено
           </text>
         </svg>
       </div>
@@ -350,6 +355,9 @@ export default function MonthlyDeficitTracker() {
         <StatCard label={"Дней заполнено"} value={filledCount + " / " + dim} />
         <StatCard label="Прогноз до цели" value={monthsToGoal ? "~" + monthsToGoal.toFixed(1) + " мес." : "\u2014"}
           icon={<TrendingDown size={14} color={COLORS.moss} />} />
+        <StatCard label="Бюджет на месяц"
+          value={Math.round(totalConsumed).toLocaleString("ru-RU") + " / " + Math.round(monthlyIntakeBudget).toLocaleString("ru-RU")} />
+        <StatCard label="Поддержание веса (мес.)" value={Math.round(monthlyMaintenance).toLocaleString("ru-RU") + " ккал"} />
       </div>
 
       <div style={{ marginBottom: "0.75rem", fontSize: 12, letterSpacing: "0.1em", color: COLORS.paperMuted, textTransform: "uppercase" }}>
